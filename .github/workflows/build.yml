@@ -1,0 +1,40 @@
+name: Compilar mod
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Instalar Gradle 7.4.2
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 7.4.2
+
+      - name: Descompactar o zip do mod
+        run: unzip -o utilidades-mod.zip
+
+      - name: Compilar
+        working-directory: utilidades-mod
+        run: gradle build --no-daemon
+
+      - name: Publicar o .jar em Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          files: utilidades-mod/build/libs/*.jar
